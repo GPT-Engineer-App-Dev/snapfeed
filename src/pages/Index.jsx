@@ -53,26 +53,37 @@ const UploadModal = ({ isOpen, onClose, onUpload }) => {
   );
 };
 
-const PhotoCard = ({ imageUrl, likes, comments }) => (
-  <Box borderWidth={1} borderRadius="lg" overflow="hidden">
-    <Image src={imageUrl} alt="User photo" />
-    <Flex p={4} justify="space-between">
-      <Flex align="center">
-        <FaHeart />
-        <Text ml={2}>{likes}</Text>
-      </Flex>
-      <Flex align="center">
-        <FaComment />
-        <Text ml={2}>{comments}</Text>
-      </Flex>
-    </Flex>
-  </Box>
-);
+const PhotoCard = ({ imageUrl, likes, comments, onLike, isLiked }) => {
+  const handleLikeClick = () => {
+    onLike();
+  };
 
-const PhotoFeed = ({ photos }) => (
+  return (
+    <Box borderWidth={1} borderRadius="lg" overflow="hidden">
+      <Image src={imageUrl} alt="User photo" />
+      <Flex p={4} justify="space-between">
+        <Flex align="center">
+          <Button
+            leftIcon={<FaHeart color={isLiked ? "red" : "gray"} />}
+            onClick={handleLikeClick}
+            variant="ghost"
+          >
+            {likes}
+          </Button>
+        </Flex>
+        <Flex align="center">
+          <FaComment />
+          <Text ml={2}>{comments}</Text>
+        </Flex>
+      </Flex>
+    </Box>
+  );
+};
+
+const PhotoFeed = ({ photos, onLike }) => (
   <Grid templateColumns="repeat(3, 1fr)" gap={6}>
     {photos.map((photo, index) => (
-      <PhotoCard key={index} {...photo} />
+      <PhotoCard key={index} {...photo} onLike={() => onLike(index)} />
     ))}
   </Grid>
 );
@@ -87,24 +98,37 @@ const Footer = () => (
 
 const Index = () => {
   const [photos, setPhotos] = useState([
-    { imageUrl: "https://via.placeholder.com/300", likes: 15, comments: 3 },
-    { imageUrl: "https://via.placeholder.com/300", likes: 20, comments: 5 },
-    { imageUrl: "https://via.placeholder.com/300", likes: 10, comments: 2 },
-    { imageUrl: "https://via.placeholder.com/300", likes: 25, comments: 7 },
-    { imageUrl: "https://via.placeholder.com/300", likes: 18, comments: 4 },
-    { imageUrl: "https://via.placeholder.com/300", likes: 30, comments: 8 }
+    { imageUrl: "https://via.placeholder.com/300", likes: 15, comments: 3, isLiked: false },
+    { imageUrl: "https://via.placeholder.com/300", likes: 20, comments: 5, isLiked: false },
+    { imageUrl: "https://via.placeholder.com/300", likes: 10, comments: 2, isLiked: false },
+    { imageUrl: "https://via.placeholder.com/300", likes: 25, comments: 7, isLiked: false },
+    { imageUrl: "https://via.placeholder.com/300", likes: 18, comments: 4, isLiked: false },
+    { imageUrl: "https://via.placeholder.com/300", likes: 30, comments: 8, isLiked: false }
   ]);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const handleUpload = (imageUrl) => {
-    setPhotos([{ imageUrl, likes: 0, comments: 0 }, ...photos]);
+    setPhotos([{ imageUrl, likes: 0, comments: 0, isLiked: false }, ...photos]);
+  };
+
+  const handleLike = (index) => {
+    setPhotos(photos.map((photo, i) => {
+      if (i === index) {
+        return { 
+          ...photo, 
+          likes: photo.isLiked ? photo.likes - 1 : photo.likes + 1,
+          isLiked: !photo.isLiked
+        };
+      }
+      return photo;
+    }));
   };
 
   return (
     <VStack spacing={0} align="stretch" minH="100vh">
       <Header onUploadClick={onOpen} />
       <Container maxW="container.xl" flex={1} py={8}>
-        <PhotoFeed photos={photos} />
+        <PhotoFeed photos={photos} onLike={handleLike} />
       </Container>
       <Footer />
       <UploadModal isOpen={isOpen} onClose={onClose} onUpload={handleUpload} />
